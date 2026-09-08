@@ -27,3 +27,5 @@ tenacity==9.1.4
 toml==0.10.2
 typing_extensions==4.16.0
 urllib3==2.7.0
+sentence-transformers
+
