@@ -1,13 +1,13 @@
 # this file is returning cleans and structured raw text
 
 import re 
-SECTION_HEADERS = ["experience","work experience","professional experience","objectives","certifications","summary","technical skills",
+SECTION_HEADERS = ["experience","work experience","project experience","objectives","certifications","summary","technical skills",
                    "skills","education","projects","achievements","publications","awards","interests","languages","references"]
 
 
 def normalise_text(text: str)  ->str:    # this lowercases text + collapse whitespaces
     text = text.lower()
-    text=re.sub(r'\s+','',text)
+    text=re.sub(r'\s+',' ',text)
     return text.strip()
 
 

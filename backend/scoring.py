@@ -2,6 +2,7 @@
 # this file comapres resume against Job description
 
 from preprocess import normalise_text
+from sentence_transformers import SentenceTransformer, util
 #from  test_preprocess import resume_text 
 
 
@@ -27,7 +28,25 @@ def compute_ats_score(jd_keywords: list[str],resume_text: str) ->dict:
         "total_keywords":total,
         "total_matched_keywords":total_matched
     }
+
+semantic_model=SentenceTransformer("all-MiniLM-L6-v2")
+
+def semantic_keywords(missing_keywords: list[str],resume_bullets: list[str], threshold: float=0.55) ->dict:
+    new_matched=[]
+    still_missing=[]
     
+    for keyword in missing_keywords:
+        keywords_embedding=semantic_model.encode(keyword)
+        bullet_embedding=semantic_model.encode(resume_bullets)
+        cosine_sim=util.cos_sim(keywords_embedding,bullet_embedding)
+        best_score= float(cosine_sim.max())
+        
+        if best_score>=threshold:
+            new_matched.append(keyword)
+        else:
+            still_missing.append(keyword)
+    return {"new_matched": new_matched, "still_missing":still_missing}
+
 if __name__=="__main__":
     from keywords import jd_keywords
     from test_preprocess import resume_text

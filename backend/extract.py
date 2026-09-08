@@ -6,7 +6,8 @@ def extract_pdf(filepath: str) ->str:
     text=""
     with pdfplumber.open(filepath) as pdf:
         for page in pdf.pages:
-            page_text=page.extract_text()
+            # A tighter tolerance prevents adjacent PDF words from being merged.
+            page_text=page.extract_text(x_tolerance=1, y_tolerance=3)
             if page_text:
                 text += page_text + "\n"
     return text

@@ -1,6 +1,9 @@
 # this file is the orecestrator as its name main , owns the /anlayse FastApi endpoint 
 # this file calls functions from every file in sequence , and assembles the final json response
 
+#take this file as make new ingredients using pre-existing ingredients , also new line can't 
+# use the feature until is mentioned or formed in previous line.
+
 
 from fastapi import FastAPI, UploadFile,File, Form
 import shutil
@@ -10,7 +13,7 @@ import uuid
 from extract import extract_pdf,extract_docx
 from  preprocess import normalise_text, split_into_sections
 from  keywords import extract_keywords
-from scoring import compute_ats_score
+from scoring import compute_ats_score, semantic_keywords
 from rewrite import generated_improved_bullets , separate_vague_bullets, profile_summary_fit
 from ats import run_ats_safety_checks
 
@@ -38,18 +41,22 @@ async def analyse_resume(resume: UploadFile=File(...), jd_text:str=Form(...)):
     
     jd_keywords= extract_keywords(jd_text)
     ats_result= compute_ats_score(jd_keywords, resume_text)
-    
     sections= split_into_sections(resume_text)
     recheck=run_ats_safety_checks(resume_text,sections)
+    print(resume_text)
     experience_text= sections.get("work experience") or sections.get("professional experience") or sections.get("project experience")  or sections.get("experience",resume_text) ## experience_text is a whole blob of text that is sent to gemini
     good_bullets,vague_bullets= separate_vague_bullets(experience_text)
     good_bullets_text="\n".join(good_bullets)
+    semantic_result= semantic_keywords(ats_result['missing_keywords'],good_bullets)
+    final_matched= ats_result['matched_keywords'] + semantic_result['new_matched']
+    final_missing= semantic_result['still_missing']
+    final_score=round(len(final_matched)/ats_result['total_keywords']*100,1) if ats_result['total_keywords']>0 else 0.0
     profile_summary = profile_summary_fit(jd_text, experience_text)
     improved_bullets= generated_improved_bullets(ats_result["missing_keywords"],good_bullets_text[:1500])
     return{
-        "ats_score" : ats_result["score"],
-        "matched_keywords": ats_result["matched_keywords"],
-        "missing_keywords": ats_result["missing_keywords"],
+        "ats_score" : final_score,
+        "matched_keywords": final_matched,
+        "missing_keywords": final_missing,
         "profile_summary": profile_summary,
         "improved_bullets": improved_bullets,
         "vague_bullets": vague_bullets,
