@@ -29,9 +29,23 @@ def compute_ats_score(jd_keywords: list[str],resume_text: str) ->dict:
         "total_matched_keywords":total_matched
     }
 
-semantic_model=SentenceTransformer("all-MiniLM-L6-v2")
+semantic_model=SentenceTransformer('BAAI/bge-small-en-v1.5')
 
-def semantic_keywords(missing_keywords: list[str],resume_bullets: list[str], threshold: float=0.55) ->dict:
+## this function wasn't working well in the execution time because mising words were checked against bullt lines
+# means one words against a sentence or line which cause aavaerage of sentence vectors and diluting the 
+# the context and displaying that no words matches 
+# solution one i came across lowering the threshold from 0.75 to 0.55 to 0.3 but its a bad idea becuse it let in 
+# false positives like matching kubernets to python programming becuase they both are tech words.
+# solution two :using cross encoder instead of bi-encoder moder , bi encoder creates vector for both elements independently while
+# cross encoder takes both elements together and then creates a vector for them which is more accurate but slower
+# like passes the keyword and the resume bullet into the transformer together, allowing the attention mechanism to 
+# directly calculate exactly how much the bullet cares about that specific keyword. It is highly accurate for short-to-long text matching.
+
+# third solution: i can use a specific model trained for professional tech and coroporate vocab like BAAI/bge-small-en-v1.5 or 
+# a dedicated tech/resume embedding model.
+
+
+def semantic_keywords(missing_keywords: list[str],resume_bullets: list[str], threshold: float=0.7) ->dict:
     new_matched=[]
     still_missing=[]
     

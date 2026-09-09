@@ -11,7 +11,7 @@ import os
 import uuid
 
 from extract import extract_pdf,extract_docx
-from  preprocess import normalise_text, split_into_sections
+from  preprocess import  split_into_sections
 from  keywords import extract_keywords
 from scoring import compute_ats_score, semantic_keywords
 from rewrite import generated_improved_bullets , separate_vague_bullets, profile_summary_fit
