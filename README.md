@@ -72,6 +72,13 @@ Python, local Docker, and cloud deployment.
   replacing/augmenting exact-substring matching.
 - (Stretch) A lightweight agentic layer for multi-step resume improvement.
 
+## Known Limitations (Phase 2)
+- Semantic keyword matching (sentence embeddings + cosine similarity) is fully 
+  implemented and verified locally, but the required ML dependencies 
+  (PyTorch + sentence-transformers) exceed Render's free-tier 512MB memory 
+  limit at runtime. The deployed version gracefully falls back to exact-match 
+  scoring; the full semantic-matching pipeline is demoable locally.
+
 ## Running Locally
 
 # Prerequisites
