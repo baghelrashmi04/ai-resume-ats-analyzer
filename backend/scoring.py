@@ -2,7 +2,15 @@
 # this file comapres resume against Job description
 
 from preprocess import normalise_text
-from sentence_transformers import SentenceTransformer, util
+from importlib import import_module
+
+try:
+    _sentence_transformers = import_module("sentence_transformers")
+    SentenceTransformer = _sentence_transformers.SentenceTransformer
+    util = _sentence_transformers.util
+except ImportError:
+    SentenceTransformer = None
+    util = None
 #from  test_preprocess import resume_text 
 
 
@@ -29,7 +37,11 @@ def compute_ats_score(jd_keywords: list[str],resume_text: str) ->dict:
         "total_matched_keywords":total_matched
     }
 
-semantic_model=SentenceTransformer('BAAI/bge-small-en-v1.5')
+semantic_model = (
+    SentenceTransformer("BAAI/bge-small-en-v1.5")
+    if SentenceTransformer is not None
+    else None
+)
 
 ## this function wasn't working well in the execution time because mising words were checked against bullt lines
 # means one words against a sentence or line which cause aavaerage of sentence vectors and diluting the 
@@ -48,6 +60,14 @@ semantic_model=SentenceTransformer('BAAI/bge-small-en-v1.5')
 def semantic_keywords(missing_keywords: list[str],resume_bullets: list[str], threshold: float=0.7) ->dict:
     new_matched=[]
     still_missing=[]
+
+    if semantic_model is None or util is None:
+        for keyword in missing_keywords:
+            if any(keyword in normalise_text(bullet) for bullet in resume_bullets):
+                new_matched.append(keyword)
+            else:
+                still_missing.append(keyword)
+        return {"new_matched": new_matched, "still_missing": still_missing}
     
     for keyword in missing_keywords:
         keywords_embedding=semantic_model.encode(keyword)
