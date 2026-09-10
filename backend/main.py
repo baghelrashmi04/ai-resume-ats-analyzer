@@ -47,9 +47,14 @@ async def analyse_resume(resume: UploadFile=File(...), jd_text:str=Form(...)):
     experience_text= sections.get("work experience") or sections.get("professional experience") or sections.get("project experience")  or sections.get("experience",resume_text) ## experience_text is a whole blob of text that is sent to gemini
     good_bullets,vague_bullets= separate_vague_bullets(experience_text)
     good_bullets_text="\n".join(good_bullets)
-    semantic_result= semantic_keywords(ats_result['missing_keywords'],good_bullets)
-    final_matched= ats_result['matched_keywords'] + semantic_result['new_matched']
-    final_missing= semantic_result['still_missing']
+    try: 
+       semantic_result= semantic_keywords(ats_result['missing_keywords'],good_bullets)
+       final_matched= ats_result['matched_keywords'] + semantic_result['new_matched']
+       final_missing= semantic_result['still_missing']
+    except Exception:
+            final_matched = ats_result['matched_keywords']
+            final_missing = ats_result['missing_keywords']
+
     final_score=round(len(final_matched)/ats_result['total_keywords']*100,1) if ats_result['total_keywords']>0 else 0.0
     profile_summary = profile_summary_fit(jd_text, experience_text)
     improved_bullets= generated_improved_bullets(ats_result["missing_keywords"],good_bullets_text[:1500])
